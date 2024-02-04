@@ -4,6 +4,7 @@ import io.restassured.authentication.PreemptiveBasicAuthScheme;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.builder.ResponseSpecBuilder;
 import io.restassured.http.ContentType;
+import io.restassured.path.json.JsonPath;
 import io.restassured.specification.RequestSpecification;
 import io.restassured.specification.ResponseSpecification;
 
@@ -16,7 +17,7 @@ import java.util.Properties;
 public class JiraUtils {
     public static RequestSpecification requestSpecification;
     public static ResponseSpecification responseSpecification;
-    PrintStream jiraLog;
+    static JsonPath js;
     public static Properties prop;
     static FileInputStream fis;
     PreemptiveBasicAuthScheme authScheme = new PreemptiveBasicAuthScheme();
@@ -31,8 +32,9 @@ public class JiraUtils {
         return requestSpecification;
     }
 
-    public ResponseSpecification setResponseSpecification() {
-        responseSpecification = new ResponseSpecBuilder().expectStatusCode(200)
+    public ResponseSpecification setResponseSpecification(String type) {
+        int httpMethod  = type.equalsIgnoreCase("GET") ? 200 : 201;
+        responseSpecification = new ResponseSpecBuilder().expectStatusCode(httpMethod)
                 .expectContentType(ContentType.JSON).build();
         return responseSpecification;
     }
@@ -47,4 +49,10 @@ public class JiraUtils {
         }
         return prop.getProperty(key);
     }
+
+    public static String getJsonParsed(String response, String key){
+        js = new JsonPath(response);
+        return js.getString(key);
+    }
+
 }

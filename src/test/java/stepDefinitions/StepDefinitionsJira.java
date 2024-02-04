@@ -1,7 +1,6 @@
 package stepDefinitions;
 
-import io.cucumber.java.en.Given;
-import io.cucumber.java.en.Then;
+import io.cucumber.java.en.*;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import io.restassured.specification.ResponseSpecification;
@@ -20,16 +19,17 @@ public class StepDefinitionsJira extends JiraUtils {
     ResponseSpecification responseSpecification;
     RequestSpecification requestBuilder;
     Response response;
+    String issueId;
 
     @Given("user is logged in")
     public void user_is_logged_in() {
         requestSpecification = setRequestSpecification();
-        responseSpecification = setResponseSpecification();
         requestBuilder = given().spec(requestSpecification).log().all();
     }
 
-    @Then("user is able to see the project details and the status code is {string}")
+    @When("user is able to see the project details and the status code is {string}")
     public void user_is_able_to_see_the_project_details_and_the_status_code_is(String string) {
+        responseSpecification = setResponseSpecification("GET");
         response = requestBuilder.when().get("rest/api/3/project/KAN")
                 .then().log().all().spec(responseSpecification).extract().response();
         assertEquals(response.getStatusCode(), Integer.parseInt(string));
@@ -43,10 +43,21 @@ public class StepDefinitionsJira extends JiraUtils {
         }catch (IOException R){
             R.printStackTrace();
         }
-        requestBuilder = given().spec(requestSpecification).log().all().body(fs);
+        requestBuilder = given().spec(requestSpecification).log().all()
+                .queryParam("updateHistory", false)
+                .body(fs);
+        responseSpecification = setResponseSpecification("POST");
         response = requestBuilder.when().post("/rest/api/3/issue")
                 .then().log().all().spec(responseSpecification).extract().response();
+        issueId = getJsonParsed(response.asString(), "id");
     }
 
+    @Then("user is able to update the issue")
+    public void user_is_able_to_update_the_issue() {
+        requestBuilder =  given().spec(requestSpecification).log().all();
+        responseSpecification = setResponseSpecification("GET");
+        response = requestBuilder.when().get(String.format("/rest/api/3/issue/10004"))
+                .then().log().all().spec(responseSpecification).extract().response();
+    }
 
 }
