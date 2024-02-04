@@ -1,15 +1,17 @@
 package stepDefinitions;
 
-import io.cucumber.java.en.*;
-import io.restassured.builder.ResponseBuilder;
-import io.restassured.builder.ResponseSpecBuilder;
-import io.restassured.http.ContentType;
+import io.cucumber.java.en.Given;
+import io.cucumber.java.en.Then;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import io.restassured.specification.ResponseSpecification;
 import resources.JiraUtils;
 
-import static io.restassured.RestAssured.*;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
+import static io.restassured.RestAssured.given;
 import static org.junit.Assert.assertEquals;
 
 public class StepDefinitionsJira extends JiraUtils {
@@ -18,18 +20,33 @@ public class StepDefinitionsJira extends JiraUtils {
     ResponseSpecification responseSpecification;
     RequestSpecification requestBuilder;
     Response response;
-    @Given("user is logged in and the status code is {string}")
-    public void user_is_logged_in_and_the_status_code_is(String string) {
+
+    @Given("user is logged in")
+    public void user_is_logged_in() {
         requestSpecification = setRequestSpecification();
-        requestBuilder = given().spec(requestSpecification);
+        responseSpecification = setResponseSpecification();
+        requestBuilder = given().spec(requestSpecification).log().all();
     }
 
-    @Then("user is able to see the project details")
-    public void user_is_able_to_see_the_project_details() {
-        responseSpecification = new ResponseSpecBuilder().expectStatusCode(200)
-                .expectContentType(ContentType.JSON).build();
+    @Then("user is able to see the project details and the status code is {string}")
+    public void user_is_able_to_see_the_project_details_and_the_status_code_is(String string) {
         response = requestBuilder.when().get("rest/api/3/project/KAN")
                 .then().log().all().spec(responseSpecification).extract().response();
-        assertEquals(response.getStatusCode(), 200);
+        assertEquals(response.getStatusCode(), Integer.parseInt(string));
     }
+
+    @Then("user is able to create an issue")
+    public void user_is_able_to_create_an_issue() {
+        String fs = "";
+        try {
+            fs = new String(Files.readAllBytes(Paths.get("./src/test/java/resources/jsons/createIssue.json")));
+        }catch (IOException R){
+            R.printStackTrace();
+        }
+        requestBuilder = given().spec(requestSpecification).log().all().body(fs);
+        response = requestBuilder.when().post("/rest/api/3/issue")
+                .then().log().all().spec(responseSpecification).extract().response();
+    }
+
+
 }

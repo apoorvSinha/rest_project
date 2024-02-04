@@ -1,13 +1,11 @@
 package resources;
 
-import io.cucumber.java.bs.A;
-import io.restassured.authentication.AuthenticationScheme;
-import io.restassured.authentication.BasicAuthScheme;
 import io.restassured.authentication.PreemptiveBasicAuthScheme;
 import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.builder.ResponseSpecBuilder;
 import io.restassured.http.ContentType;
-import io.restassured.internal.http.HTTPBuilder;
 import io.restassured.specification.RequestSpecification;
+import io.restassured.specification.ResponseSpecification;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -17,6 +15,7 @@ import java.util.Properties;
 
 public class JiraUtils {
     public static RequestSpecification requestSpecification;
+    public static ResponseSpecification responseSpecification;
     PrintStream jiraLog;
     public static Properties prop;
     static FileInputStream fis;
@@ -30,6 +29,12 @@ public class JiraUtils {
                 .setContentType(ContentType.JSON)
                 .build();
         return requestSpecification;
+    }
+
+    public ResponseSpecification setResponseSpecification() {
+        responseSpecification = new ResponseSpecBuilder().expectStatusCode(200)
+                .expectContentType(ContentType.JSON).build();
+        return responseSpecification;
     }
 
     public static String getHiddenProperties(String key){
