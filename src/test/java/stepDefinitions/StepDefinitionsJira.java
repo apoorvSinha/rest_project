@@ -19,7 +19,7 @@ public class StepDefinitionsJira extends JiraUtils {
     ResponseSpecification responseSpecification;
     RequestSpecification requestBuilder;
     Response response;
-    static String issueId;
+    static String issueId = String.valueOf(10004);
 
     @Given("user is logged in")
     public void user_is_logged_in() {
@@ -52,12 +52,19 @@ public class StepDefinitionsJira extends JiraUtils {
         issueId = getJsonParsed(response.asString(), "id");
     }
 
-    @Then("user is able to update the issue")
-    public void user_is_able_to_update_the_issue() {
-        System.out.println(issueId);
+    @When("user is able to get the issue")
+    public void user_is_able_to_get_the_issue() {
         requestBuilder =  given().spec(requestSpecification).log().all();
         responseSpecification = setResponseSpecification("GET");
         response = requestBuilder.when().get("/rest/api/3/issue/"+ issueId)
+                .then().log().all().spec(responseSpecification).extract().response();
+    }
+
+    @When("user is able to udpate the issue")
+    public void user_is_able_to_update_the_issue() {
+        requestBuilder = given().spec(requestSpecification).log().all();
+        responseSpecification = setResponseSpecification("PUT");
+        response = requestBuilder.when().put("/rest/api/3/issue/"+issueId)
                 .then().log().all().spec(responseSpecification).extract().response();
     }
 
